@@ -4,7 +4,7 @@ import { Cartelera, Movie } from '../interfaces/cartelera-response';
 import { Cast, Credits } from '../interfaces/credits-response';
 import { MovieDetails } from '../interfaces/movie-response';
 import { Observable, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,7 @@ export class PeliculasService {
     };
   }
 
-  resetCarteleraPage(): void{
+  resetCarteleraPage(): void {
     this.carteleraPage = 1;
   }
   getCatelera(): Observable<Movie[]> {
@@ -37,7 +37,7 @@ export class PeliculasService {
         params: this.params
       })
       .pipe(
-        map( (resp) => resp.results),
+        map((resp) => resp.results),
         tap(() => {
           this.carteleraPage += 1;
           this.cargando = false;
@@ -46,7 +46,7 @@ export class PeliculasService {
   }
 
   buscarPelicula(texto: string): Observable<Movie[]> {
-    const params = {...this.params, page: '1', query: texto};
+    const params = { ...this.params, page: '1', query: texto };
     return this.http.get<Cartelera>(`${this.baseUrl}/search/movie`, {
       params
     }).pipe(map((resp) => resp.results));
@@ -56,12 +56,15 @@ export class PeliculasService {
     const idmovie = parseInt(id);
     return this.http.get<MovieDetails>(`${this.baseUrl}/movie/${idmovie}`, {
       params: this.params
-    });
+    }).pipe(catchError(err => of(null)));
   }
   getCredits(id: string): Observable<Cast[]> {
     const idmovie = parseInt(id);
     return this.http.get<Credits>(`${this.baseUrl}/movie/${idmovie}/credits`, {
       params: this.params
-    }).pipe(map(resp => resp.cast));
+    }).pipe(
+      map(resp => resp.cast),
+      catchError(err => of([]))
+    );
   }
 }

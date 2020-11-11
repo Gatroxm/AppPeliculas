@@ -30,3 +30,9 @@
         </div>
     </div>
 </div>
+
+<div class="row" *ngIf="Credits">
+    <div class="col">
+        <app-cast-slideshow [Casts]="Credits"></app-cast-slideshow>
+    </div>
+</div>
